@@ -31,4 +31,12 @@ exports.sheetToken = {
 exports.CHATBASE = {
     apiKey: "7fc77ac1-3263-4634-9950-1c5f068357a3"
 };
+exports.lineConfig = {
+    channelId: "1568239267",
+    channelSecret: "71dbe2b2d241b2a397d89a903ef65e83",
+    channelAccessToken: "5iHuPdT6WSW5kNCaKQ61P5HLAcLrf7FUMwOL89AJpHzW5V6EKoGN8MhiiI6/kD8hav1N/cYNYukNf4QxSODEU/DKEIdHskmRy0vxSGdTdJ5/gRH0jBuXL5WfTeT6AeLFKoIS8/ppk6V6e+g7+oFfhgdB04t89/1O/w1cDnyilFU="
+};
+exports.dialogflowConfig = {
+    agentToken: "1b057831802d437da53fb765fc11a610"
+};
 //# sourceMappingURL=chatbotConfig.js.map

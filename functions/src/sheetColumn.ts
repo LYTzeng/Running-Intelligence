@@ -12,15 +12,6 @@ export const memberColumn = {
     locationState: "H"
 }
 
-export const groupColumn = {
-    workspace: "GROUP",
-    sheetId: "10il4M_dMpriJB9Nw9tbgNOWLQpaCHGtckZTtyxJG-N8",
-    gid: "553343118",
-    id: "A",
-    groupName: "B",
-    groupLineId: "C"
-}
-
 export const performanceColumn = {
     workspace: "PERFORMANCE",
     sheetId: "10il4M_dMpriJB9Nw9tbgNOWLQpaCHGtckZTtyxJG-N8",

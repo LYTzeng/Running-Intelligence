@@ -56,7 +56,8 @@ const eventDispatcher = (event) => {
                 if (event.source.type == "group")
                     chatbaseService.sendMessageToChatBase(userId, message, "discuss", "Line", "user", "Group");
                 else
-                    messageDispatcher(userId, event.message.text);
+                    messageDispatcher(userId, message);
+                console.log(event.message.type);
             }
             else if (event.message.type === "location") {
                 const address = event.message.address;
@@ -118,6 +119,7 @@ const messageDispatcher = (userId, message) => {
         chatbaseService.sendMessageToChatBase(userId, response.result.resolvedQuery, response.result.metadata.intentName, "Line", "user");
     }).end();
     request.on("error", error => console.log("Error: ", error));
+    console.log('shit');
 };
 const setDialogflowEvent = (userId, eventName, eventParameter) => __awaiter(this, void 0, void 0, function* () {
     const request = dialogflowAgent.eventRequest({
@@ -129,7 +131,7 @@ const setDialogflowEvent = (userId, eventName, eventParameter) => __awaiter(this
     }).end();
     request.on("error", error => console.log("Error: ", error));
 });
-const actionDispatcher = (userId, result) => {
+const actionDispatcher = (userId, result, replyToken) => {
     console.log(JSON.stringify(result, null, 4));
     const action = result.action;
     switch (action) {
@@ -144,6 +146,7 @@ const actionDispatcher = (userId, result) => {
             break;
         case "showPerformance":
             showPerformance(userId, result);
+            break;
         default:
             pushErrorMessage(userId, result);
             break;

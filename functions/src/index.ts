@@ -3,7 +3,6 @@ import { Client, validateSignature, WebhookEvent, Message, TextMessage, Template
 import * as Dialogflow from "apiai"
 import * as MomentZone from "moment-timezone"
 import * as memberService from "./services/memberService"
-import * as groupService from "./services/groupService"
 import * as praticeService from "./services/praticeService"
 import * as chatbaseService from "./services/chatbaseService"
 import * as weatherService from "./services/weatherService"
@@ -16,8 +15,6 @@ import * as admin from 'firebase-admin'
 import { recordColumn, performanceColumn } from "./sheetColumn"
 import { LINE, DIALOGFLOW, CHATBASE } from "./chatbotConfig"
 import { MEMBER, PERFORMANCE, AIR, AIR_SORT} from "./model"
-/* framework model */
-import { ChatbotEvent, ApplicationMessage, Admin } from './model'
 import { lineConfig, dialogflowConfig } from './chatbotConfig'
 
 
@@ -49,14 +46,6 @@ const eventDispatcher = (event: WebhookEvent): void => {
             break
         case "unfollow":
             unfollow(userId)
-            break
-        case "join":
-            if (event.source.type == "group")
-                replyJoinMessage(event.replyToken, event.source.groupId)
-            break
-        case "leave":
-            if (event.source.type == "group")
-                leave(event.source.groupId)
             break
         case "message":
             if (event.message.type === "text") {
@@ -91,36 +80,6 @@ const replyFollowMessage = async (replyToken: string, userId: string): Promise<a
 const unfollow = async (userId: string) => {
     const member = await memberService.getMember(userId)
     memberService.deleteMember(member)
-}
-/* Join Group */
-const replyJoinMessage = (replyToken: string, groupId: string): Promise<any> => {
-    const url = `https://docs.google.com/forms/d/e/1FAIpQLSe4OegRN6xCWQGUyTl3MOmNZSLUyetSIoMnqrRXgcqn9FZKNg/viewform?usp=pp_url&entry.2066429067=${groupId}`
-    const lineMessage: TextMessage = {
-        type: "text",
-        text: `我是《智能跑步幫手》\n很高興受邀加入貴群組【${groupId}】\n\n請你填表幫我長智慧，讓我知道這個群組的相關資料`
-    }
-    const buttonsMessage: TemplateMessage = {
-        type: "template",
-        altText: "This is a buttons template",
-        template: {
-            type: "buttons",
-            title: "智能跑步幫手",
-            text: "請填寫表單",
-            actions: [
-                {
-                    type: "uri",
-                    label: "點擊填寫",
-                    uri: url
-                }
-            ]
-        }
-    }
-    return replyMessage(replyToken, [lineMessage, buttonsMessage])
-}
-
-const leave = async (groupId: string) => {
-    const group = await groupService.getGroup(groupId)
-    groupService.deleteGroup(group)
 }
 
 const messageDispatcher = (userId: string, message: string): void => {
@@ -472,53 +431,9 @@ export const pushTextMessage = functions.https.onRequest((req, res) => {
 
 export const sendPerformanceReport = functions.https.onRequest(async (req, res) => {
     const memberPerformance = req.body as [{ member: MEMBER, performance: PERFORMANCE }]
-    await Promise.all([sendReportToGroup(memberPerformance), sendReportToMembers(memberPerformance)])
+    await Promise.all([sendReportToMembers(memberPerformance)])
     res.sendStatus(200)
 })
-
-const sendReportToGroup = async (data: [{ member: MEMBER, performance: PERFORMANCE }]): Promise<any> => {
-    const groups = (await groupService.getGroups()).map(group => group.groupLineId)
-    //console.log(groups)
-    const sorted = data.sort((a, b) => {
-        if (parseInt(`${a.performance.rank}`) < parseInt(`${b.performance.rank}`))
-            return -1
-        if (parseInt(`${a.performance.rank}`) > parseInt(`${b.performance.rank}`))
-            return 1
-        return 0
-    })
-    const now = MomentZone().tz("Asia/Taipei")
-    const lineMessage: TextMessage[] = [{
-        type: "text",
-        text: `跑步幫手\n${now.format("M月D日")} 會員績效報表：`
-    }]
-    let message = ""
-    for (let index = 0; index < sorted.length; index++) {
-        const memberPerformance = sorted[index]
-        message += `<${memberPerformance.performance.name}>\n` +
-            `跑步次數：${memberPerformance.performance.runningCount}\n` +
-            `跑步時間：${memberPerformance.performance.totalRunningTime}\n` +
-            `時間排名：${memberPerformance.performance.rank}\n`+
-            `里程總計：${memberPerformance.performance.totalRunningDist}\n`+
-            `任務達成量：${memberPerformance.performance.missionCount}\n`
-
-        if (index % 10 === 9) {
-            lineMessage.push({
-                type: "text",
-                text: message
-            })
-            message = ""
-        } else if (index !== sorted.length - 1)
-            message += "\n\n"
-    }
-    if (message !== "") {
-        lineMessage.push({
-            type: "text",
-            text: message
-        })
-    }
-    //console.log(lineMessage)
-    groups.forEach(groupId => pushMessage(groupId, lineMessage))
-}
 
 const sendReportToMembers = (data: [{ member: MEMBER, performance: PERFORMANCE }]): Promise<any> => {
     const promises = new Array<Promise<any>>()
@@ -529,8 +444,7 @@ const sendReportToMembers = (data: [{ member: MEMBER, performance: PERFORMANCE }
                 `跑步次數：${memberPerformance.performance.runningCount}\n：${memberPerformance.performance.runningCount}\n` +
                 `跑步時間：${memberPerformance.performance.totalRunningTime}\n` +
                 `時間排名：${memberPerformance.performance.rank}\n`+
-                `里程總計：${memberPerformance.performance.totalRunningDist}\n`+
-                `任務達成量：${memberPerformance.performance.missionCount}\n`
+                `里程總計：${memberPerformance.performance.totalRunningDist}\n`
         } as TextMessage
         promises.push(pushMessage(memberPerformance.member.lineId, lineMessage))
     }
