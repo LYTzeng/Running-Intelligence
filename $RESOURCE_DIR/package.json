@@ -1,0 +1,29 @@
+{
+  "name": "functions",
+  "scripts": {
+    "build": "./node_modules/.bin/tsc",
+    "serve": "npm run build && firebase serve --only functions",
+    "shell": "npm run build && firebase experimental:functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "@google/chatbase": "^1.1.0",
+    "@line/bot-sdk": "^6.0.1",
+    "@types/node-cache": "^4.1.1",
+    "apiai": "^4.0.3",
+    "axios": "^0.18.0",
+    "firebase-admin": "~5.8.1",
+    "firebase-functions": "^0.8.2",
+    "google-auth-library": "^1.3.2",
+    "googleapis": "^27.0.0",
+    "moment-timezone": "^0.5.14",
+    "node-cache": "^4.1.1"
+  },
+  "devDependencies": {
+    "typescript": "^2.5.3"
+  },
+  "private": true
+}
