@@ -9,12 +9,6 @@ export type MEMBER = {
     locationState: number
 }
 
-export type GROUP = {
-    id: number
-    groupName: string,
-    groupLineId: string
-}
-
 export type PERFORMANCE = {
     id: string,
     lineId: string,
@@ -93,4 +87,19 @@ export type AIR_SORT = {
     lng: number
     timestamp: string
     distance: number
+}
+
+/* Google Pub/Sub */
+export type ChatCount = {
+    postCount: number
+    sendCount: number
+    receiveCount: number
+}
+
+export type ChatMessage = {
+    id: string
+    sender: string
+    receiver: string
+    message: string
+    timestamp: number
 }

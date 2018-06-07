@@ -1,13 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LINE = {
-    channelId: "1568239267",
-    channelSecret: "71dbe2b2d241b2a397d89a903ef65e83",
-    channelAccessToken: "5iHuPdT6WSW5kNCaKQ61P5HLAcLrf7FUMwOL89AJpHzW5V6EKoGN8MhiiI6/kD8hav1N/cYNYukNf4QxSODEU/DKEIdHskmRy0vxSGdTdJ5/gRH0jBuXL5WfTeT6AeLFKoIS8/ppk6V6e+g7+oFfhgdB04t89/1O/w1cDnyilFU="
-};
-exports.DIALOGFLOW = {
-    agentToken: "1b057831802d437da53fb765fc11a610"
-};
 exports.sheetClientSecret = {
     "installed": {
         "client_id": "583555422665-drr4qv7rb6i2plo1750g2damugsmdd0b.apps.googleusercontent.com",

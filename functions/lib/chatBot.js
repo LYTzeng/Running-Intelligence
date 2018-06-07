@@ -20,13 +20,13 @@ const weatherService = require("./services/weatherService");
 const sheetColumn_1 = require("./sheetColumn");
 const chatbotConfig_1 = require("./chatbotConfig");
 const lineClient = new bot_sdk_1.Client({
-    channelSecret: chatbotConfig_1.LINE.channelSecret,
-    channelAccessToken: chatbotConfig_1.LINE.channelAccessToken
+    channelSecret: chatbotConfig_1.lineConfig.channelSecret,
+    channelAccessToken: chatbotConfig_1.lineConfig.channelAccessToken
 });
-const dialogflowAgent = Dialogflow(chatbotConfig_1.DIALOGFLOW.agentToken);
+const dialogflowAgent = Dialogflow(chatbotConfig_1.dialogflowConfig.agentToken);
 exports.webhook = functions.https.onRequest((req, res) => {
     const signature = req.headers["x-line-signature"];
-    if (bot_sdk_1.validateSignature(JSON.stringify(req.body), chatbotConfig_1.LINE.channelSecret, signature)) {
+    if (bot_sdk_1.validateSignature(JSON.stringify(req.body), chatbotConfig_1.lineConfig.channelSecret, signature)) {
         const events = req.body.events;
         events.forEach(event => eventDispatcher(event));
     }
@@ -50,7 +50,7 @@ const eventDispatcher = (event) => {
                     messageDispatcher(userId, message);
                 console.log(event.message.type);
             }
-            else if (event.message.type === "location") {
+            else if (event.message.type === "location") { //FIXME:
                 const address = event.message.address;
                 const latitude = event.message.latitude; // 緯度
                 const longitude = event.message.longitude; // 經度
@@ -100,10 +100,10 @@ const actionDispatcher = (userId, result, replyToken) => {
         case "register.askForRegister":
             askForRegister(userId, result);
             break;
-        case "startRunning":// beginPractice
+        case "startRunning": // beginPractice
             startRunning(userId, result);
             break;
-        case "endRunning":// endPractice
+        case "endRunning": // endPractice
             endRunning(userId, result);
             break;
         case "showPerformance":
@@ -120,9 +120,9 @@ const askForRegister = (userId, result) => __awaiter(this, void 0, void 0, funct
     const member = yield memberService.getMemberByName(name);
     //console.log(member)
     let url = "https://docs.google.com/forms/d/e/1FAIpQLSdTPHU7jTpFYUMeJvHUUTW9OLHI58YYVhl_GTAVmZJnqBUtVQ/viewform?usp=pp_url";
-    if (member)
+    if (member) // 會員已註冊
         url += `&entry.2119144834=${member.name}&entry.1152459710=${member.weight}&entry.1337116834=${member.height}&entry.515189027=${member.email}&entry.485262396=${userId}`;
-    else
+    else // 新會員註冊
         url += `&entry.2119144834=${name}&entry.485262396=${userId}`;
     setLocationState(userId, 0);
     const lineMessage = {
@@ -209,6 +209,7 @@ const endRunning = (userId, result) => __awaiter(this, void 0, void 0, function*
             memberService.updateMemberWorkState(member, "2");
             updatePraticeRecord(member, responseText);
         }
+        /* 開始跑步沒有傳位置 */
         else if ((yield getLocationState(member)) === "notSentLocation") {
             const responseText = result.fulfillment.messages[0].speech;
             memberService.updateMemberWorkState(member, "0");
@@ -258,6 +259,7 @@ const updateUserLocation = (userId, address, latitude, longitude) => __awaiter(t
         yield praticeService.updatePracticeRecord(range, values);
         chatbaseService.sendMessageToChatBase(userId, address, "startLocation", "Line", "user");
     }
+    /* 結束跑步後，紀錄終點 */
     else if ((yield canStartRunning(member)) === "justEndRunning" && (yield getLocationState(member)) === "sentLocation") {
         const rangeAddr = `${sheetColumn_1.recordColumn.workspace}!${sheetColumn_1.recordColumn.endLocation}${practiceRecord.id}:${sheetColumn_1.recordColumn.endLocation}${practiceRecord.id}`;
         const valueAddr = [[address]];
@@ -293,11 +295,13 @@ const updateUserLocation = (userId, address, latitude, longitude) => __awaiter(t
         }
         chatbaseService.sendMessageToChatBase(userId, address, "endLocation", "Line", "user");
     }
+    /* 一般狀態，查詢天氣 */
     else if ((yield canStartRunning(member)) === "canStartRunning" && (yield getLocationState(member)) === "sentLocation") {
         airReport(userId, latitude, longitude);
         chatbaseService.sendMessageToChatBase(userId, address, "weatherReport", "Line", "user");
         //TODO: weatherReport()
     }
+    /* 例外處理1：上一次跑步結束時沒有傳位置訊息*/
     else if ((yield canStartRunning(member)) === "canStartRunning" && (yield getLocationState(member)) === "notSentLocation") {
         setLocationState(userId, 1);
         airReport(userId, latitude, longitude);

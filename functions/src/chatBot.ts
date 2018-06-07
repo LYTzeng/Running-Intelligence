@@ -13,10 +13,8 @@ import * as admin from 'firebase-admin'
 //import * as lineLinkService from "./services/lineLinkService"
 
 import { recordColumn, performanceColumn } from "./sheetColumn"
-import { LINE, DIALOGFLOW, CHATBASE } from "./chatbotConfig"
+import { lineConfig, dialogflowConfig, CHATBASE } from "./chatbotConfig"
 import { MEMBER, PERFORMANCE, AIR, AIR_SORT} from "./model"
-import { lineConfig, dialogflowConfig } from './chatbotConfig'
-
 
 import { freemem } from "os";
 import { text } from "body-parser";
@@ -24,14 +22,14 @@ import { user } from "firebase-functions/lib/providers/auth";
 
 
 const lineClient = new Client({
-    channelSecret: LINE.channelSecret,
-    channelAccessToken: LINE.channelAccessToken
+    channelSecret: lineConfig.channelSecret,
+    channelAccessToken: lineConfig.channelAccessToken
 })
-const dialogflowAgent = Dialogflow(DIALOGFLOW.agentToken)
+const dialogflowAgent = Dialogflow(dialogflowConfig.agentToken)
 
 export const webhook = functions.https.onRequest((req, res) => {
     const signature = req.headers["x-line-signature"] as string
-    if (validateSignature(JSON.stringify(req.body), LINE.channelSecret, signature)) {
+    if (validateSignature(JSON.stringify(req.body), lineConfig.channelSecret, signature)) {
         const events = req.body.events as Array<WebhookEvent>
         events.forEach(event => eventDispatcher(event))
     }

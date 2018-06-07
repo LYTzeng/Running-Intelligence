@@ -76,22 +76,4 @@ exports.stationColumn = {
     lat: "D",
     lng: "E"
 };
-exports.missionTypeColumn = {
-    workspace: "MISSION_TYPE",
-    sheetId: "10il4M_dMpriJB9Nw9tbgNOWLQpaCHGtckZTtyxJG-N8",
-    gid: "1793998651",
-    id: "A",
-    missionName: "B",
-    todo: "C",
-    condition: "D"
-};
-exports.missionRecordColumn = {
-    workspace: "MISSION_RECORD",
-    sheetId: "10il4M_dMpriJB9Nw9tbgNOWLQpaCHGtckZTtyxJG-N8",
-    gid: "2126998042",
-    lineId: "A",
-    name: "B",
-    missionType: "C",
-    completeDate: "D"
-};
 //# sourceMappingURL=sheetColumn.js.map
