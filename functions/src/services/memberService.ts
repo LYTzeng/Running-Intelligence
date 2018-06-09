@@ -1,8 +1,14 @@
 import * as googleSheets from "../services/sheetService"
+import * as functions from "firebase-functions"
+import * as admin from "firebase-admin"
 import { memberColumn } from "../sheetColumn"
 import { MEMBER, RECORD, PERFORMANCE} from "../model";
 import { recordColumn, performanceColumn} from "../sheetColumn"
+import { User, Member } from "../firestoreModel"
 //import { google, GoogleApis } from "googleapis";
+
+const firestore = admin.firestore()
+const userCollection = firestore.collection("User")
 
 export const getMember = async (userId: string) => {
     const auth = await googleSheets.authorize()
@@ -145,3 +151,10 @@ export const deleteMember = async (member: MEMBER) => {
     let range = encodeURI(`${memberColumn.workspace}!${memberColumn.lineId}${member.id}:${memberColumn.lineId}${member.id}`)
     googleSheets.clearSheet(auth, memberColumn.sheetId, range)
 }
+/*
+export const getFirestoreUser = async (lineId: string) => {
+    let query = userCollection.where('lineId', '==', lineId).get()
+        .then(snapshot => {
+            console.log(snapshot)
+        })
+}*/

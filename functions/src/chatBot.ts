@@ -18,7 +18,8 @@ import { MEMBER, PERFORMANCE, AIR, AIR_SORT} from "./model"
 
 import { freemem } from "os";
 import { text } from "body-parser";
-import { user } from "firebase-functions/lib/providers/auth";
+import { user } from "firebase-functions/lib/providers/auth"
+import { getLatestPost } from "./topicSubscriber"
 
 
 const lineClient = new Client({
@@ -87,7 +88,6 @@ const messageDispatcher = (userId: string, message: string): void => {
         chatbaseService.sendMessageToChatBase(userId, response.result.resolvedQuery, response.result.metadata.intentName, "Line", "user")
     }).end()
     request.on("error", error => console.log("Error: ", error))
-    console.log('shit')
 }
 
 const setDialogflowEvent = async (userId: string, eventName: string, eventParameter?: Object) => {
@@ -116,6 +116,7 @@ const actionDispatcher = (userId: string, result: any, replyToken?: string): voi
             break
         case "showPerformance":
             showPerformance(userId, result)
+            getLatestPost()
             break
         default:
             pushErrorMessage(userId, result)
@@ -159,19 +160,19 @@ const showPerformance = async (userId: string, result: any): Promise<any> => {
     const parameters = result.parameters
     if (parameters.lookfor !== "" && parameters.performance !== ""){
         const performance = await memberService.getMemberPerformance(userId)
+        //const user = await memberService.getFirestoreUser(userId)
+        //console.log("showPerformance.user =>" ,user)
         var distanceMeter = performance.totalRunningDist % 1000
         var distanceKilometer = (performance.totalRunningDist - distanceMeter)/1000
         distanceKilometer += distanceMeter/1000
         const lineMessage: TextMessage = {
             type: "text",
-            text: "累計跑步距離 "+distanceKilometer+" km\n"+"里程排名第"+performance.rank+"名"
+            text: responseText.replace("{{distance}}", distanceKilometer.toString())
+                .replace("{{rank}}", performance.rank)
+                .replace("{{count}}", performance.runningCount)
+                .replace("{{time}}", performance.totalRunningTime)
         }
         pushMessage(userId, lineMessage)
-        const lineMessageB: TextMessage = {
-            type: "text",
-            text: "總計次數"+performance.runningCount+"次\n累計時數："+performance.totalRunningTime
-        }
-        pushMessage(userId, lineMessageB)
         chatbaseService.sendMessageToChatBase(userId, result.resolvedQuery, result.metadata.intentName, "Line", "user", "lookupPerformance")
     }
 }

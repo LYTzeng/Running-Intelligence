@@ -2,10 +2,12 @@ import * as functions from 'firebase-functions'
 import * as admin from 'firebase-admin'
 import {Client, Message, TextMessage} from '@line/bot-sdk'
 import * as PubSub from "@google-cloud/pubsub"
+import * as uuid from 'uuid'
 
 import * as sheetService from "./services/sheetService"
 import { lineConfig } from './chatbotConfig'
 import { ChatMessage } from './model'
+import { Admin } from './firestoreModel'
 import { memberColumn } from './sheetColumn'
 
 
@@ -18,6 +20,10 @@ const lineClient = new Client({
 
 const pubsub = PubSub()
 
+const firestore = admin.firestore()
+const adminCollection = firestore.collection("Admin")
+const postCollection = firestore.collection("Post")
+
 export const publishPostTopic = functions.https.onRequest((req, res) => {
     cors(req, res, async () => {
         const postMessage: ChatMessage = req.body
@@ -26,6 +32,23 @@ export const publishPostTopic = functions.https.onRequest((req, res) => {
     })
 })
 
+/* 把公告訊息塞到Firestore */
+export const postMessageSubscriber = functions.pubsub.topic("postTopic").onPublish(async (data, context) => {
+    const message: ChatMessage = { id: uuid.v4(), ...data.json, timestamp: new Date().getTime() }
+    const senderReference = await adminCollection.doc(message.sender)
+
+    return Promise.all([
+        postCollection.doc(message.id).create(message),
+        firestore.runTransaction(async transaction => {
+            const senderDocument = await transaction.get(senderReference)
+            const sender = senderDocument.data() as Admin
+            const senderChatCount = sender.chatCount || { postCount: 0, sendCount: 0, receiveCount: 0 }
+            return transaction.update(senderReference, { chatCount: { ...senderChatCount, postCount: senderChatCount.postCount + 1 } })
+        })
+    ])
+})
+
+/* 把公告訊息推給所有LINE用戶 */
 export const postLinePushSubscriber = functions.pubsub.topic("postTopic").onPublish(async (data, context) => {
     const chatMessage: ChatMessage = data.json
 
@@ -59,4 +82,10 @@ export const postLinePushSubscriber = functions.pubsub.topic("postTopic").onPubl
 
 const pushMessage = (userId: string, lineMessage: Message | Array<Message>): Promise<any> => {
     return lineClient.pushMessage(userId, lineMessage)
+}
+
+export const getLatestPost = async () => {
+    const postList = postCollection.get().then(snap => {snap.forEach(doc => {console.log(doc.data())})})
+    return postList
+    //const message: ChatMessage = 
 }

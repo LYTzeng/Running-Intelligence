@@ -153,14 +153,12 @@ const showPerformance = (userId, result) => __awaiter(this, void 0, void 0, func
         distanceKilometer += distanceMeter / 1000;
         const lineMessage = {
             type: "text",
-            text: "累計跑步距離 " + distanceKilometer + " km\n" + "里程排名第" + performance.rank + "名"
+            text: responseText.replace("{{distance}}", distanceKilometer.toString())
+                .replace("{{rank}}", performance.rank)
+                .replace("{{count}}", performance.runningCount)
+                .replace("{{time}}", performance.totalRunningTime)
         };
         pushMessage(userId, lineMessage);
-        const lineMessageB = {
-            type: "text",
-            text: "總計次數" + performance.runningCount + "次\n累計時數：" + performance.totalRunningTime
-        };
-        pushMessage(userId, lineMessageB);
         chatbaseService.sendMessageToChatBase(userId, result.resolvedQuery, result.metadata.intentName, "Line", "user", "lookupPerformance");
     }
 });

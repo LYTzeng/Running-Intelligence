@@ -27,3 +27,4 @@ export const firestoreToAuthenticationDelete = authService.firestoreToAuthentica
 /* Pub/Sub */
 export const publishPostTopic = pubsub.publishPostTopic
 export const postLinePushSubscriber = pubsub.postLinePushSubscriber
+export const postMessageSubscriber = pubsub.postMessageSubscriber
